@@ -1,0 +1,20 @@
+spring:
+  jackson:
+    serialization:
+      indent_output: true
+
+feign:
+  client:
+    config:
+      gw2:
+        connectTimeout: 5000
+        readTimeout: 5000
+        loggerLevel: full
+
+logging:
+  level:
+    root: INFO
+    bot: DEBUG
+    org:
+      springframework:
+        web: INFO
