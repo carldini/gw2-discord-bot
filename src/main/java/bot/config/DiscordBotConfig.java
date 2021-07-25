@@ -9,10 +9,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import bot.services.discord.JokeService;
 import bot.services.discord.MessageProcessor;
 import bot.services.discord.message.EnrolGw2ApiKeyProcessor;
 import bot.services.discord.message.Gw2AccountProcessor;
+import bot.services.discord.message.Gw2CharactersProcessor;
 import bot.services.discord.message.HelpMessageProcessor;
+import bot.services.discord.message.JokeMessageProcessor;
 import bot.services.discord.message.TodoMessageProcessor;
 import bot.services.discord.message.UnhandledMessageProcessor;
 import bot.services.gw2.AccountService;
@@ -93,5 +96,15 @@ public class DiscordBotConfig {
    @Bean
    public MessageProcessor accountMessageProcessor(final KeyService keyService, final AccountService accountService) {
      return new Gw2AccountProcessor(keyService, accountService);
+   }
+
+   @Bean
+   public MessageProcessor charactersMessageProcessor(final KeyService keyService, final AccountService accountService) {
+     return new Gw2CharactersProcessor(keyService, accountService);
+   }
+
+   @Bean
+   public JokeMessageProcessor jokeMessageProcessor(final JokeService jokeService) {
+     return new JokeMessageProcessor(jokeService);
    }
 }
