@@ -60,7 +60,7 @@ public class Gw2AccountProcessor implements MessageProcessor {
         return "Sorry " + requestedBy + ", that api-key doesn't have account permissions";
       }
     } catch (Exception e) {
-      LOGGER.warn("Unable tp enrol apikey for " + user, e);
+      LOGGER.warn("Unable to use apikey for " + user, e);
       return "Sorry " + requestedBy + ", I couldn't validate that api-key, please double check it and try again.";
     }
   }

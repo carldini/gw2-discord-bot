@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
 
 import bot.services.discord.JokeService;
 import bot.services.discord.MessageProcessor;
@@ -99,8 +100,11 @@ public class DiscordBotConfig {
    }
 
    @Bean
-   public MessageProcessor charactersMessageProcessor(final KeyService keyService, final AccountService accountService) {
-     return new Gw2CharactersProcessor(keyService, accountService);
+   public MessageProcessor charactersMessageProcessor(
+    final FreeMarkerConfigurer freeMarkerConfigurer,
+    final KeyService keyService,
+    final AccountService accountService) {
+     return new Gw2CharactersProcessor(freeMarkerConfigurer, keyService, accountService);
    }
 
    @Bean
