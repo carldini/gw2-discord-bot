@@ -15,4 +15,5 @@ public class ApiClientConfig {
   public AccountService accountService(GuildWars2ApiClient client) {
     return new AccountService(client);
   } 
+
 }
