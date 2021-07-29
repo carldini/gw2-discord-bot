@@ -31,7 +31,7 @@ public class HelpMessageProcessor implements MessageProcessor {
         "Valid commands are:",
         "- help (this command)",
         "- todo",
-        "- enrol <api-key>",
+        "- enrol <api-key> (You should do this in a direct message, not a group)",
         "- account",
         "- characters",
         "- joke"

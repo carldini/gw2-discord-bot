@@ -2,14 +2,16 @@ package bot.config;
 
 import java.lang.invoke.MethodHandles;
 import java.util.List;
+import java.util.function.Consumer;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
 
+import bot.model.discord.DiscordReply;
 import bot.services.discord.JokeService;
 import bot.services.discord.MessageProcessor;
 import bot.services.discord.message.EnrolGw2ApiKeyProcessor;
@@ -29,10 +31,11 @@ import discord4j.core.event.domain.lifecycle.ReadyEvent;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
+import discord4j.core.spec.EmbedCreateSpec;
+import reactor.core.publisher.Sinks;
 import reactor.core.scheduler.Schedulers;
 
 @Configuration
-//@Profile("discord")
 public class DiscordBotConfig {
 
   private final static Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -41,7 +44,11 @@ public class DiscordBotConfig {
   private String token;
 
   @Bean
-  public <T extends Event> GatewayDiscordClient gatewayDiscordClient(List<MessageProcessor> processors) {
+  public <T extends Event> GatewayDiscordClient gatewayDiscordClient(
+      final List<MessageProcessor> processors,
+      final Sinks.Many<Message> messagesReceived,
+      final Sinks.Many<DiscordReply<List<Consumer<EmbedCreateSpec>>>> embedMessagesToSend) {
+
     ReactorResources reactorResources = ReactorResources.builder()
         .timerTaskScheduler(Schedulers.newParallel("discord-scheduler"))
         .blockingTaskScheduler(Schedulers.boundedElastic())
@@ -60,6 +67,18 @@ public class DiscordBotConfig {
       .filter(tuple -> tuple.getT2().isPresent())
       .flatMap(tuple -> tuple.getT1().getChannel().block().createMessage(tuple.getT2().get()))
       .subscribe();
+    
+    client.getEventDispatcher()
+      .on(MessageCreateEvent.class)
+      .map(MessageCreateEvent::getMessage)
+      .filter(message -> message.getAuthor().map(user -> !user.isBot()).orElse(false))
+      .filter(message -> StringUtils.startsWith(message.getContent(), "botdini "))
+      .subscribe(
+        message -> messagesReceived.tryEmitNext(message),
+        error -> LOGGER.error("unable to process received message", error));
+
+    embedMessagesToSend.asFlux()
+      .subscribe(reply -> processEmbedMessage(reply));
       
     client.getEventDispatcher()
       .on(ReadyEvent.class)
@@ -70,6 +89,26 @@ public class DiscordBotConfig {
 
     client.onDisconnect().subscribe();
     return client;
+  }
+
+  private void processEmbedMessage(DiscordReply<List<Consumer<EmbedCreateSpec>>> reply) {
+    reply.getOriginalMessage().getChannel()
+      .flatMap(channel -> channel.createMessage(messageSpec -> {
+        reply.getReply().forEach(embed -> messageSpec.addEmbed(embed));
+      }))
+      .subscribe(
+        event -> LOGGER.debug("event is {}", event),
+        error -> LOGGER.error("error is {}", error));
+  }
+
+  @Bean
+  public Sinks.Many<Message> messagesReceived() {
+    return Sinks.many().replay().all();
+  }
+
+  @Bean
+  public Sinks.Many<DiscordReply<List<Consumer<EmbedCreateSpec>>>> embedMessagesToSend() {
+    return Sinks.many().replay().all();
   }
 
   private MessageProcessor getMessageProcessor(Message message, final List<MessageProcessor> processors) {
@@ -89,26 +128,35 @@ public class DiscordBotConfig {
     return new TodoMessageProcessor();
   }
 
-   @Bean
-   public MessageProcessor enrolMessageprocessor(final KeyService keyService) {
-     return new EnrolGw2ApiKeyProcessor(keyService);
-   }
+  @Bean
+  public MessageProcessor enrolMessageprocessor(final KeyService keyService) {
+    return new EnrolGw2ApiKeyProcessor(keyService);
+  }
 
-   @Bean
-   public MessageProcessor accountMessageProcessor(final KeyService keyService, final AccountService accountService) {
-     return new Gw2AccountProcessor(keyService, accountService);
-   }
+  @Bean
+  public Gw2AccountProcessor accountMessageProcessor(
+      final KeyService keyService,
+      final AccountService accountService,
+      final Sinks.Many<Message> messagesReceived,
+      final Sinks.Many<DiscordReply<List<Consumer<EmbedCreateSpec>>>> embedMessagesToSend) {
+    return new Gw2AccountProcessor(keyService, accountService, messagesReceived, embedMessagesToSend);
+  }
 
-   @Bean
-   public MessageProcessor charactersMessageProcessor(
-    final FreeMarkerConfigurer freeMarkerConfigurer,
-    final KeyService keyService,
-    final AccountService accountService) {
-     return new Gw2CharactersProcessor(freeMarkerConfigurer, keyService, accountService);
-   }
+  @Bean
+  public Gw2CharactersProcessor charactersMessageProcessor(
+      final KeyService keyService,
+      final AccountService accountService,
+      final Sinks.Many<Message> messagesReceived,
+      final Sinks.Many<DiscordReply<List<Consumer<EmbedCreateSpec>>>> embedMessagesToSend) {
+    return new Gw2CharactersProcessor(
+      keyService,
+      accountService,
+      messagesReceived,
+      embedMessagesToSend);
+  }
 
-   @Bean
-   public JokeMessageProcessor jokeMessageProcessor(final JokeService jokeService) {
-     return new JokeMessageProcessor(jokeService);
-   }
+  @Bean
+  public JokeMessageProcessor jokeMessageProcessor(final JokeService jokeService) {
+    return new JokeMessageProcessor(jokeService);
+  }
 }

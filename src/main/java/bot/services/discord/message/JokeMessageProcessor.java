@@ -11,6 +11,7 @@ import bot.model.joke.Joke;
 import bot.services.discord.JokeService;
 import bot.services.discord.MessageProcessor;
 import discord4j.core.object.entity.Message;
+import discord4j.core.object.entity.User;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
@@ -33,6 +34,14 @@ public class JokeMessageProcessor implements MessageProcessor {
   @Override
   public Tuple2<Message, Optional<String>> process(Message message) {
     LOGGER.debug("received {} from {}", message.getContent(), message.getAuthor());
+
+    Optional<User> author = message.getAuthor();
+    if (author.isPresent()) {
+      if (StringUtils.equals(author.get().getUsername(), "Poll_")) {
+        Tuples.of(message, Optional.of("No Sam... No jokes for you."));
+      }
+    }
+
     final Joke joke = jokeService.joke();
     String jokeMessage;
 
