@@ -58,6 +58,6 @@ public class EnrolGw2ApiKeyProcessor implements MessageProcessor {
   private String processToken(final String user, final TokenInfo token) {
     return "Ok " + user + 
         " that token gave me access to see " + 
-        StringUtils.join(token.getPermissions(), ",");
+        StringUtils.join(token.permissions(), ",");
   }
 }

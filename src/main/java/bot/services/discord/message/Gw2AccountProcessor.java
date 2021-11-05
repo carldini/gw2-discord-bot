@@ -57,10 +57,10 @@ public class Gw2AccountProcessor {
       spec.setTitle("Guild Wars 2 Account");
       try {
         final Account account = getAccount(requestedBy);
-        spec.addField("Name", account.getName(), false);
-        spec.addField("World", String.valueOf(account.getWorld()), false);
-        spec.addField("Created On", account.getCreated(), false);
-        spec.addField("Last Login", account.getLastModified(), false);
+        spec.addField("Name", account.name(), false);
+        spec.addField("World", String.valueOf(account.world()), false);
+        spec.addField("Created On", account.created(), false);
+        spec.addField("Last Login", account.lastModified(), false);
       } catch (Exception e) {
         spec.addField("Error", e.getMessage(), false);
       }
@@ -79,7 +79,7 @@ public class Gw2AccountProcessor {
     
     try {
       final TokenInfo token = accountService.getTokenInfo(apiKey);
-      if (token.getPermissions().contains("account")) {
+      if (token.permissions().contains("account")) {
         return accountService.getAccount(apiKey);
       }
       throw new RuntimeException("Sorry, the api-key for " + user + " doesn't have account permissions");

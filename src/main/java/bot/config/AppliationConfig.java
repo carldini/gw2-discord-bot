@@ -13,17 +13,17 @@ import bot.services.gw2.KeyService;
 public class AppliationConfig {
 
   @Bean
-  public KeyService keyService(final AccountService accountService) {
+  protected KeyService keyService(final AccountService accountService) {
     return new KeyService(accountService);
   }
 
   @Bean
-  public JokeService jokeService(final JokeClient jokeClient) {
+  protected JokeService jokeService(final JokeClient jokeClient) {
     return new JokeService(jokeClient);
   }
 
   @Bean
-  public FreeMarkerConfigurer freeMarkerConfigurer() {
+  protected FreeMarkerConfigurer freeMarkerConfigurer() {
     final FreeMarkerConfigurer freeMarkerConfigurer = new FreeMarkerConfigurer();
     freeMarkerConfigurer.setTemplateLoaderPath("classpath:templates");
     return freeMarkerConfigurer;

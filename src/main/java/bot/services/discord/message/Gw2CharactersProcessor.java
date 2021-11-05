@@ -56,13 +56,13 @@ public class Gw2CharactersProcessor {
     final String requestedBy = discordUser.getUsername() + "#" + discordUser.getDiscriminator();
     final List<Consumer<EmbedCreateSpec>> characters = getCharacters(requestedBy).stream().map(character -> {
       final Consumer<EmbedCreateSpec> template = spec -> {
-        spec.setTitle(character.getName());
+        spec.setTitle(character.name());
         spec.setColor(getColor(character));
         spec.addField("Profession", getGoofyProfession(character), true);
-        spec.addField("Level", String.valueOf(character.getLevel()), true);
-        spec.addField("Deaths", character.getDeaths(), true);
-        spec.addField("Created On", character.getCreated(), true);
-        spec.addField("Last Login", character.getLastModified(), true);
+        spec.addField("Level", String.valueOf(character.level()), true);
+        spec.addField("Deaths", character.deaths(), true);
+        spec.addField("Created On", character.created(), true);
+        spec.addField("Last Login", character.lastModified(), true);
         spec.setThumbnail(getProfessionImage(character));
       };
       return template;
@@ -81,7 +81,7 @@ public class Gw2CharactersProcessor {
     
     try {
       final TokenInfo token = accountService.getTokenInfo(apiKey);
-      if (token.getPermissions().contains("characters")) {
+      if (token.permissions().contains("characters")) {
         return accountService.getCharacters(apiKey);
       }
       throw new RuntimeException("Sorry, the api-key for " + user + " doesn't have characters permissions");
@@ -92,7 +92,7 @@ public class Gw2CharactersProcessor {
   }
 
   private Color getColor(final Character character) {
-    switch (character.getProfession()) {
+    switch (character.profession()) {
       case "Mesmer":
         return Color.of(180, 121, 224);
       case "Engineer":
@@ -117,26 +117,26 @@ public class Gw2CharactersProcessor {
   }
 
   private String getGoofyProfession(Character character) {
-    if (StringUtils.equals(character.getProfession(), "Mesmer")) {
-      if (! StringUtils.equals(character.getName(), "Carldini")) {
+    if (StringUtils.equals(character.profession(), "Mesmer")) {
+      if (! StringUtils.equals(character.name(), "Carldini")) {
         return "2nd Rate Mesmer";
       }
     }
-    return character.getProfession();
+    return character.profession();
   }
 
   private String getProfessionImage(Character character) {
-    if (StringUtils.equals(character.getProfession(), "Mesmer")) {
-      if (! StringUtils.equals(character.getName(), "Carldini")) {
+    if (StringUtils.equals(character.profession(), "Mesmer")) {
+      if (! StringUtils.equals(character.name(), "Carldini")) {
         return "https://static.staticwars.com/quaggans/lost.jpg";
       }
     }
 
-    if (StringUtils.equals(character.getName(), "Rarakablah")) {
+    if (StringUtils.equals(character.name(), "Rarakablah")) {
       return "https://render.guildwars2.com/file/BAF43C0425BA631B9C49E771F9EB16E32C1E57E1/1203237.png";
     }
 
-    switch (character.getProfession()) {
+    switch (character.profession()) {
       case "Mesmer":
         return "https://render.guildwars2.com/file/AF61567E16A83F145D6FB35D63BF01074A3A5AB9/156635.png";
       case "Engineer":

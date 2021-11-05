@@ -1,10 +1,7 @@
 package bot.controllers;
 
-import java.lang.invoke.MethodHandles;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -17,15 +14,7 @@ import bot.services.gw2.AccountService;
 
 @RestController
 @RequestMapping("gw2")
-public class Gw2Controller {
-
-  private final static Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private final AccountService accountService;
-
-  public Gw2Controller(final AccountService accountService) {
-    this.accountService = accountService;
-    LOGGER.info("Setting up {}", this.getClass());
-  }
+public record Gw2Controller(AccountService accountService) {
 
   @GetMapping("token")
   public TokenInfo tokenInfo(@RequestParam(name = "token") final String apiKey) {

@@ -7,13 +7,7 @@ import bot.model.gw2.Account;
 import bot.model.gw2.Character;
 import bot.model.gw2.TokenInfo;
 
-public class AccountService {
-
-  private final GuildWars2ApiClient client;
-
-  public AccountService(final GuildWars2ApiClient client) {
-    this.client = client;
-  }
+public record AccountService(GuildWars2ApiClient client) {
 
   public TokenInfo getTokenInfo(final String apiKey) {
     return client.getTokenInfo(client.createBearer(apiKey));

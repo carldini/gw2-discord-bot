@@ -35,7 +35,7 @@ public class JokeMessageProcessor implements MessageProcessor {
   public Tuple2<Message, Optional<String>> process(Message message) {
     LOGGER.debug("received {} from {}", message.getContent(), message.getAuthor());
 
-    Optional<User> author = message.getAuthor();
+    final Optional<User> author = message.getAuthor();
     if (author.isPresent()) {
       if (StringUtils.equals(author.get().getUsername(), "Poll_")) {
         Tuples.of(message, Optional.of("No Sam... No jokes for you."));
@@ -45,10 +45,12 @@ public class JokeMessageProcessor implements MessageProcessor {
     final Joke joke = jokeService.joke();
     String jokeMessage;
 
-    if (StringUtils.equals(joke.getType(), "twopart")) {
-      jokeMessage = joke.getSetup() + "\n" + joke.getDelivery();
+    if (StringUtils.equals(joke.type(), "twopart")) {
+      jokeMessage = String.format("""
+                                  %s
+                                  %s""", joke.setup(), joke.delivery());
     } else {
-      jokeMessage = joke.getJoke();
+      jokeMessage = joke.joke();
     }
 
     return Tuples.of(message, Optional.of(jokeMessage));

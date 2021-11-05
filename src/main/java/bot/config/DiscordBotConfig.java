@@ -44,12 +44,12 @@ public class DiscordBotConfig {
   private String token;
 
   @Bean
-  public <T extends Event> GatewayDiscordClient gatewayDiscordClient(
+  protected <T extends Event> GatewayDiscordClient gatewayDiscordClient(
       final List<MessageProcessor> processors,
       final Sinks.Many<Message> messagesReceived,
       final Sinks.Many<DiscordReply<List<Consumer<EmbedCreateSpec>>>> embedMessagesToSend) {
 
-    ReactorResources reactorResources = ReactorResources.builder()
+    final ReactorResources reactorResources = ReactorResources.builder()
         .timerTaskScheduler(Schedulers.newParallel("discord-scheduler"))
         .blockingTaskScheduler(Schedulers.boundedElastic())
         .build();
@@ -91,10 +91,11 @@ public class DiscordBotConfig {
     return client;
   }
 
-  private void processEmbedMessage(DiscordReply<List<Consumer<EmbedCreateSpec>>> reply) {
-    reply.getOriginalMessage().getChannel()
+  private void processEmbedMessage(
+      final DiscordReply<List<Consumer<EmbedCreateSpec>>> reply) {
+    reply.originalMessage().getChannel()
       .flatMap(channel -> channel.createMessage(messageSpec -> {
-        reply.getReply().forEach(embed -> messageSpec.addEmbed(embed));
+        reply.reply().forEach(embed -> messageSpec.addEmbed(embed));
       }))
       .subscribe(
         event -> LOGGER.debug("event is {}", event),
@@ -102,39 +103,41 @@ public class DiscordBotConfig {
   }
 
   @Bean
-  public Sinks.Many<Message> messagesReceived() {
+  protected Sinks.Many<Message> messagesReceived() {
     return Sinks.many().replay().all();
   }
 
   @Bean
-  public Sinks.Many<DiscordReply<List<Consumer<EmbedCreateSpec>>>> embedMessagesToSend() {
+  protected Sinks.Many<DiscordReply<List<Consumer<EmbedCreateSpec>>>> embedMessagesToSend() {
     return Sinks.many().replay().all();
   }
 
-  private MessageProcessor getMessageProcessor(Message message, final List<MessageProcessor> processors) {
+  private MessageProcessor getMessageProcessor(
+      final Message message,
+      final List<MessageProcessor> processors) {
     return processors.stream()
-    .filter(processor -> processor.filter(message))
-    .findFirst()
-    .orElse(new UnhandledMessageProcessor());
+      .filter(processor -> processor.filter(message))
+      .findFirst()
+      .orElse(new UnhandledMessageProcessor());
   }
 
   @Bean
-  public MessageProcessor helpMessageProcessor() {
+  protected MessageProcessor helpMessageProcessor() {
     return new HelpMessageProcessor();
   }
 
   @Bean
-  public MessageProcessor todoMessageProcessor() {
+  protected MessageProcessor todoMessageProcessor() {
     return new TodoMessageProcessor();
   }
 
   @Bean
-  public MessageProcessor enrolMessageprocessor(final KeyService keyService) {
+  protected MessageProcessor enrolMessageprocessor(final KeyService keyService) {
     return new EnrolGw2ApiKeyProcessor(keyService);
   }
 
   @Bean
-  public Gw2AccountProcessor accountMessageProcessor(
+  protected Gw2AccountProcessor accountMessageProcessor(
       final KeyService keyService,
       final AccountService accountService,
       final Sinks.Many<Message> messagesReceived,
@@ -143,7 +146,7 @@ public class DiscordBotConfig {
   }
 
   @Bean
-  public Gw2CharactersProcessor charactersMessageProcessor(
+  protected Gw2CharactersProcessor charactersMessageProcessor(
       final KeyService keyService,
       final AccountService accountService,
       final Sinks.Many<Message> messagesReceived,
@@ -156,7 +159,8 @@ public class DiscordBotConfig {
   }
 
   @Bean
-  public JokeMessageProcessor jokeMessageProcessor(final JokeService jokeService) {
+  protected JokeMessageProcessor jokeMessageProcessor(
+      final JokeService jokeService) {
     return new JokeMessageProcessor(jokeService);
   }
 }

@@ -12,7 +12,7 @@ import bot.services.gw2.AccountService;
 public class ApiClientConfig {
 
   @Bean
-  public AccountService accountService(GuildWars2ApiClient client) {
+  protected AccountService accountService(GuildWars2ApiClient client) {
     return new AccountService(client);
   } 
 
